@@ -1,1 +1,1 @@
-Some bash scripting experiments.
+Some Bash scripting experiments.
