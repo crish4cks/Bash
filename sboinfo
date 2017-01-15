@@ -1,0 +1,150 @@
+#!/bin/bash
+#
+# Copyright (c) 2017, Cristiano Urban
+#
+# A simple script providing some info from SlackBuilds.org
+# Currently it provides the number of SlackBuild scripts.
+#
+# Version 0.1
+#
+
+set -e
+
+PURPLE='\033[0;35m'
+NC='\033[0m'
+
+SBo="ftp://slackbuilds.org/"
+
+declare -a REPOS=("academic" \
+                  "accessibility" \
+                  "audio" \
+                  "business" \
+                  "desktop" \
+                  "development" \
+                  "games" \
+                  "gis" \
+                  "graphics" \
+                  "ham" \
+                  "haskell" \
+                  "libraries" \
+                  "misc" \
+                  "multimedia" \
+                  "network" \
+                  "office" \
+                  "perl" \
+                  "python" \
+                  "ruby" \
+                  "system")
+
+declare -a SLACK=("11.0" \
+                  "12.0" \
+                  "12.1" \
+                  "12.2" \
+                  "13.0" \
+                  "13.1" \
+                  "13.37" \
+                  "14.0" \
+                  "14.1" \
+                  "14.2")
+
+function usage {
+    echo
+    echo "$0 --count -v SLACKWARE_VERSION"
+    echo "$0 --count -v SLACKWARE_VERSION --repo REPOSITORY_NAME"
+    echo
+}
+
+function count_all {
+    local slack_ver=$1
+    local sum=0
+    local tmp
+
+    echo
+
+    for i in "${REPOS[@]}"
+    do
+        tmp=$(curl -l -s ${SBo}${slack_ver}/${i}/ | grep -v '[.]' | wc -l)
+        sum=$((sum + tmp))
+        if [ $tmp != 0 ]; then
+            echo -e ${i^}: ${PURPLE}$tmp${NC}
+        fi
+    done
+
+    echo
+    echo "------------------------"
+    echo -e "Total:" ${PURPLE}$sum${NC} SlackBuilds
+    echo "------------------------"
+    echo
+}
+
+function count_repo {
+    local slack_ver=$1
+    local repo="$(printf $2 | tr '[:upper:]' '[:lower:]')"
+    local tmp=$(curl -l -s ${SBo}${slack_ver}/${repo}/ | grep -v '[.]' | wc -l)
+
+    echo
+    echo -e ${repo^}: ${PURPLE}$tmp${NC}
+    echo
+}
+
+function check_slack_ver {
+    local slack_ver=$1
+    local flag=false
+
+    for i in "${SLACK[@]}"
+    do
+        if [[ $slack_ver == $i ]]; then
+            flag=true
+            echo "$flag"
+            return
+        fi;
+    done
+
+    echo "$flag"
+}
+
+function check_repo {
+    if [ -z $1 ]; then
+        echo "false"
+        return
+    fi
+
+    local repo="$(printf $1 | tr '[:upper:]' '[:lower:]')"
+    local flag=false
+
+    for i in "${REPOS[@]}"
+    do
+        if [[ $repo == $i ]]; then
+            flag=true
+            echo "$flag"
+            return
+        fi;
+    done
+
+    echo "$flag"
+}
+
+case $1 in
+        --count)
+            if [[ ( $2 == "-v" ) && $(check_slack_ver $3) == true ]]; then
+                if [[ -z $4  && -z $5  ]]; then
+                    count_all $3
+                elif [[ ( $4 == "--repo" ) && $(check_repo $5) == true ]]; then
+                    count_repo $3 $5
+                else
+                    usage
+                    exit 1
+                fi
+            else
+                usage
+                exit 1
+            fi
+            ;;
+
+        --help)
+            usage
+            ;;
+        *)
+            usage
+            exit 1
+esac
