@@ -1,0 +1,30 @@
+ #!/bin/bash
+#
+# Copyright (c) 2017, Cristiano Urban
+#
+# A very simple script used to connect to a WLAN through a command
+# line interface. It sets a static IP address for the machine.
+#
+# This script can be called from /etc/rc.d/rc.local in order
+# to be automatically executed at boot.
+#
+# Version 0.1
+#
+
+# Obtain the name of the wireless interface
+IFACE=$(ip a | grep -o 'wlan[0-9]' | head -1)
+
+# Enable the wireless interface
+ip link set $IFACE up
+
+# Launch wpa_supplicant to connect to the WLAN
+wpa_supplicant -B -i $IFACE -D wext -c /etc/wpa_supplicant.conf &
+
+# Wait until the connection is established
+sleep 5
+
+# Set a static IP address
+ip addr add 192.168.1.3/24 dev $IFACE
+
+# Set the gateway address
+ip route add default via 192.168.1.1
