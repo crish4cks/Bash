@@ -13,7 +13,7 @@ set -e
 PURPLE='\033[0;35m'
 NC='\033[0m'
 
-SBo="ftp://slackbuilds.org/"
+SBo="ftp://slackbuilds.org/pub/slackbuilds/"
 
 declare -a REPOS=("academic" \
                   "accessibility" \
