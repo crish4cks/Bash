@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2017, Cristiano Urban
+# Copyright (c) 2017 Cristiano Urban (https://crish4cks.net)
 #
 # A simple script providing some info from SlackBuilds.org
 # Currently it provides the number of SlackBuild scripts.

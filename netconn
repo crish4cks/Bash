@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2017, Cristiano Urban
+# Copyright (c) 2017 Cristiano Urban (https://crish4cks.net)
 #
 # A very simple script used to connect to a WLAN through a command
 # line interface. It sets a static IP address for the machine.
