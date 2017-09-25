@@ -1,0 +1,146 @@
+#!/bin/bash
+#
+# Copyright (c) 2017 Cristiano Urban (https://crish4cks.net)
+#
+# This script automatically retrieves and installs the kernel
+# patches on Slackware and creates the initrd.
+#
+# 'kernel-patches' must be used in combination with slackpkg, thus
+# you have to launch 'slackpkg update' and 'slackpkg upgrade-all'
+# before to run it.
+#
+# Before to use slackpkg you need to uncomment the following lines
+# in /etc/slackpkg/blacklist:
+#
+#     kernel-generic
+#     kernel-generic-smp
+#     kernel-huge
+#     kernel-huge-smp
+#     kernel-modules
+#     kernel-modules-smp
+#     kernel-source
+#
+# When 'kernel-patches' has completed all the operations, you need
+# to modify your configuration by hand in /etc/lilo.conf (change an
+# existing entry or add a new one, for example).
+# Then run 'lilo -t' and, if all is ok, 'lilo -v'.
+#
+# In order to upgrade a SMP kernel you need to pass the SMP_KERNEL
+# parameter:
+#
+#     SMP_KERNEL=yes ./kernel-patches.sh
+#
+# This will create the initrd for the SMP kernel.
+#
+#
+# Version 0.1
+#
+
+
+# Exit on most errors
+set -e
+
+# Temporary work dir
+TMP=${TMP:-/tmp/kernel-patches}
+
+# Use the same mirror of slackpkg (removes empty lines, if any)
+MIRROR=$(cat /etc/slackpkg/mirrors | grep -v '#' | sed 's/ //g')
+
+# Remove the slash at the end
+MIRROR=${MIRROR%?}
+
+# Determine the system architecture (ARM not supported for now)
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i586 ;;
+       *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+# Cleanup
+rm -rf $TMP
+
+# Check if MIRROR is empty
+if [ -z "$MIRROR" ]; then
+  dialog --title "Slackware kernel patches" \
+         --msgbox "\n\nNo mirror selected for slackpkg!\n\nPlease, select one mirror from /etc/slackpkg/mirrors and launch slackpkg before.\n\n" 15 70
+  exit
+fi
+
+dialog --title "Slackware kernel patches" --clear \
+       --yesno "\n\nWould you like to check if new patches are available?" 10 40
+
+case $? in
+  0)
+    :;;
+  1)
+    exit;;
+  255)
+esac
+
+dialog --infobox "\n\nChecking for updates..." 7 30
+
+# The current running kernel version
+KERN_OLD=$(uname -r)
+
+# Determine the new kernel version
+pattern='linux-[0-9]{1}.[0-9]{1,2}.[0-9]{1,2}'
+KERN_DIR=$(curl -l -s ${MIRROR}/patches/packages/ | egrep -o $pattern)
+KERN_NEW=${KERN_DIR:6}
+
+# Support for SMP kernel
+if [[ "${SMP_KERNEL:-no}" = "yes" && "$ARCH" != "x86_64" ]]; then
+  SMP="-smp"
+else
+  SMP=""
+fi
+
+# Compare the kernel versions
+if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
+  dialog --title "Slackware kernel patches" --clear \
+         --yesno "\n\nNew kernel version available: ${KERN_NEW}\n\nDo you want to proceed?" 10 40
+
+  case $? in
+    0)
+      :;;
+    1)
+      exit;;
+    255)
+  esac
+
+  # Create a temporary work dir
+  mkdir -p $TMP
+
+  # Download all the packages
+  wget ${MIRROR}/patches/packages/${KERN_DIR}/kernel-generic*.txz -P $TMP
+  wget ${MIRROR}/patches/packages/${KERN_DIR}/kernel-huge*.txz -P $TMP
+  wget ${MIRROR}/patches/packages/${KERN_DIR}/kernel-modules*.txz -P $TMP
+  wget ${MIRROR}/patches/packages/${KERN_DIR}/kernel-source*.txz -P $TMP
+
+  dialog --title "Slackware kernel patches" --clear \
+         --yesno "\n\nAll packages have been downloaded.\nWould you like to proceed with the upgrade?" 10 40
+
+  case $? in
+    0)
+      :;;
+    1)
+      exit;;
+    255)
+  esac
+
+  # Install the packages
+  installpkg ${TMP}/*.txz
+
+  # Create the initrd
+  CMD=$(/usr/share/mkinitrd/mkinitrd_command_generator.sh -k ${KERN_NEW}${SMP} -a "-o /boot/initrd-${KERN_NEW}${SMP}.gz" | grep -v '^$\|^\s*\#')
+  $CMD
+
+  dialog --title "Slackware kernel patches" \
+         --msgbox "\n\nUpgrade done successfully!" 10 40
+
+  dialog --title "Slackware kernel patches" \
+         --msgbox "\n\nIMPORTANT: Now you need to modify the configuration in /etc/lilo.conf and then run lilo!" 10 60
+else
+  dialog --title "Slackware kernel patches" \
+         --msgbox "\n\nNo updates available." 10 40
+fi
