@@ -131,6 +131,9 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   # Install the packages
   installpkg ${TMP}/*.txz
 
+  dialog --infobox "\n\nCreating the initrd..." 7 30
+  sleep 2
+
   # Create the initrd
   CMD=$(/usr/share/mkinitrd/mkinitrd_command_generator.sh -k ${KERN_NEW}${SMP} -a "-o /boot/initrd-${KERN_NEW}${SMP}.gz" | grep -v '^$\|^\s*\#')
   $CMD
