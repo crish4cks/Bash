@@ -28,7 +28,7 @@
 # In order to upgrade a SMP kernel you need to pass the SMP_KERNEL
 # parameter:
 #
-#     SMP_KERNEL=yes ./kernel-patches.sh
+#     SMP_KERNEL=yes ./kernel-patches
 #
 # This will create the initrd for the SMP kernel.
 #
