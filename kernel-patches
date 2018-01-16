@@ -84,7 +84,7 @@ dialog --infobox "\n\nChecking for updates..." 7 30
 KERN_OLD=$(uname -r)
 
 # Determine the new kernel version
-pattern='linux-[0-9]{1}.[0-9]{1,2}.[0-9]{1,2}'
+pattern='linux-[0-9]{1}.[0-9]{1,2}.[0-9]{1,3}'
 KERN_DIR=$(curl -l -s ${MIRROR}/patches/packages/ | egrep -o $pattern)
 KERN_NEW=${KERN_DIR:6}
 
