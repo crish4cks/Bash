@@ -33,7 +33,7 @@
 # This will create the initrd for the SMP kernel.
 #
 #
-# Version 0.1
+# Version 0.2
 #
 
 
@@ -56,9 +56,6 @@ if [ -z "$ARCH" ]; then
        *) ARCH=$( uname -m ) ;;
   esac
 fi
-
-# Cleanup
-rm -rf $TMP
 
 # Check if MIRROR is empty
 if [ -z "$MIRROR" ]; then
@@ -108,14 +105,17 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     255)
   esac
 
+  dialog --infobox "\n\nDownloading the packages..." 7 40
+  sleep 2
+
   # Create a temporary work dir
   mkdir -p $TMP
 
-  # Download all the packages
-  wget ${MIRROR}/patches/packages/${KERN_DIR}/kernel-generic*.txz -P $TMP
-  wget ${MIRROR}/patches/packages/${KERN_DIR}/kernel-huge*.txz -P $TMP
-  wget ${MIRROR}/patches/packages/${KERN_DIR}/kernel-modules*.txz -P $TMP
-  wget ${MIRROR}/patches/packages/${KERN_DIR}/kernel-source*.txz -P $TMP
+  # Download all the packages (don't clobber the files already present)
+  wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-generic*.txz -P $TMP
+  wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-huge*.txz -P $TMP
+  wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-modules*.txz -P $TMP
+  wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-source*.txz -P $TMP
 
   dialog --title "Slackware kernel patches" --clear \
          --yesno "\n\nAll packages have been downloaded.\nWould you like to proceed with the upgrade?" 10 40
@@ -143,6 +143,9 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
 
   dialog --title "Slackware kernel patches" \
          --msgbox "\n\nIMPORTANT: Now you need to modify the configuration in /etc/lilo.conf and then run lilo!" 10 60
+
+  # Cleanup
+  rm -rf $TMP
 else
   dialog --title "Slackware kernel patches" \
          --msgbox "\n\nNo updates available." 10 40
