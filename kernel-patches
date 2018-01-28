@@ -188,8 +188,8 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   exec 3>&1
   PARAMS=$(dialog \
     --title "${DIALOG_TITLE}" \
-    --inputbox "Enter the parameters as comma-separated key=value pairs (e.g. key1=value1,...,keyN=valueN):" \
-    0 0  \
+    --inputbox "\nEnter the parameters as space-separated key=value pairs (e.g. <key1=value1 key2=value2>):" \
+    10 60  \
     2>&1 1>&3)
   exit_status=$?
   exec 3>&-
