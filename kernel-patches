@@ -2,8 +2,12 @@
 #
 # Copyright (c) 2017 Cristiano Urban (https://crish4cks.net)
 #
+# IMPORTANT!!!
+# THIS SCRIPT IS STILL IN TESTING PHASE, SO USE IT AT YOUR OWN RISK!
+#
 # This script automatically retrieves and installs the kernel
-# patches on Slackware and creates the initrd.
+# patches on Slackware, creates the initrd and writes a basic
+# configuration in /etc/lilo.conf.
 #
 # 'kernel-patches' must be used in combination with slackpkg, thus
 # you have to launch 'slackpkg update' and 'slackpkg upgrade-all'
@@ -20,10 +24,19 @@
 #     kernel-modules-smp
 #     kernel-source
 #
-# When 'kernel-patches' has completed all the operations, you need
-# to modify your configuration by hand in /etc/lilo.conf (change an
-# existing entry or add a new one, for example).
-# Then run 'lilo -t' and, if all is ok, 'lilo -v'.
+# Features:
+#
+# *) Automatic detection, retrieve and installation of the packages
+# *) Automatic initrd creation
+# *) Possibility to choose for a manual or automatic lilo configuration
+# *) The automatic lilo configuration creates a basic entry in lilo.conf
+#    with the possibility to append parameters
+#
+# Things TODO:
+#
+# *) Check the correctness of the parameters passed by the user
+# *) Try to solve the issue related on yes/no dialog box resize
+# *) Adjust dimensions of some dialog boxes + add some comments
 #
 # In order to upgrade a SMP kernel you need to pass the SMP_KERNEL
 # parameter:
@@ -33,15 +46,17 @@
 # This will create the initrd for the SMP kernel.
 #
 #
-# Version 0.2
+# Version 0.3
 #
 
-
-# Exit on most errors
-set -e
+# Title for dialog boxes
+DIALOG_TITLE="Slackware kernel patches"
 
 # Temporary work dir
 TMP=${TMP:-/tmp/kernel-patches}
+
+# Exit on most errors
+set -e
 
 # Use the same mirror of slackpkg (removes empty lines, if any)
 MIRROR=$(cat /etc/slackpkg/mirrors | grep -v '#' | sed 's/ //g')
@@ -59,12 +74,13 @@ fi
 
 # Check if MIRROR is empty
 if [ -z "$MIRROR" ]; then
-  dialog --title "Slackware kernel patches" \
-         --msgbox "\n\nNo mirror selected for slackpkg!\n\nPlease, select one mirror from /etc/slackpkg/mirrors and launch slackpkg before.\n\n" 15 70
+  dialog --title "${DIALOG_TITLE}" \
+         --msgbox "\nNo mirror selected for slackpkg! \n\nPlease, select one mirror from /etc/slackpkg/mirrors \nand launch slackpkg before." 10 58
   exit
 fi
 
-dialog --title "Slackware kernel patches" --clear \
+dialog --title "${DIALOG_TITLE}" \
+       --clear \
        --yesno "\n\nWould you like to check if new patches are available?" 10 40
 
 case $? in
@@ -94,7 +110,8 @@ fi
 
 # Compare the kernel versions
 if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
-  dialog --title "Slackware kernel patches" --clear \
+  dialog --title "${DIALOG_TITLE}" \
+         --clear \
          --yesno "\n\nNew kernel version available: ${KERN_NEW}\n\nDo you want to proceed?" 10 40
 
   case $? in
@@ -117,7 +134,8 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-modules*.txz -P $TMP
   wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-source*.txz -P $TMP
 
-  dialog --title "Slackware kernel patches" --clear \
+  dialog --title "${DIALOG_TITLE}" \
+         --clear \
          --yesno "\n\nAll packages have been downloaded.\nWould you like to proceed with the upgrade?" 10 40
 
   case $? in
@@ -138,15 +156,78 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   CMD=$(/usr/share/mkinitrd/mkinitrd_command_generator.sh -k ${KERN_NEW}${SMP} -a "-o /boot/initrd-${KERN_NEW}${SMP}.gz" | grep -v '^$\|^\s*\#')
   $CMD
 
-  dialog --title "Slackware kernel patches" \
+  dialog --title "${DIALOG_TITLE}" \
          --msgbox "\n\nUpgrade done successfully!" 10 40
 
-  dialog --title "Slackware kernel patches" \
-         --msgbox "\n\nIMPORTANT: Now you need to modify the configuration in /etc/lilo.conf and then run lilo!" 10 60
+  dialog --title "${DIALOG_TITLE}" \
+         --clear \
+         --yesno "\n\nWould you like to configure lilo automatically?" 10 40
+
+  case $? in
+    0)
+      :;;
+    1)
+      dialog --title "${DIALOG_TITLE}" \
+             --msgbox "\n\nIMPORTANT: Now you need to modify the configuration in /etc/lilo.conf and then run lilo!"
+      exit;;
+    255)
+  esac
+
+  # Pattern to determine the root partition
+  pattern='/dev/[a-z]{1,}[0-9]{1,}'
+
+  # Create a basic entry for lilo
+  IMG="image = /boot/vmlinuz-generic-${KERN_NEW}${SMP}\n"
+  INITRD="\x20\x20initrd = /boot/initrd-${KERN_NEW}${SMP}.gz\n"
+  ROOT="\x20\x20root = $(df / | egrep -o ${pattern})\n"
+  LABEL="\x20\x20label = ${KERN_NEW}${SMP}\n"
+  FS_MOUNT="\x20\x20read-only"
+  APPEND=""
+
+  # Change output redirection
+  exec 3>&1
+  PARAMS=$(dialog \
+    --title "${DIALOG_TITLE}" \
+    --inputbox "Enter the parameters as comma-separated key=value pairs (e.g. key1=value1,...,keyN=valueN):" \
+    0 0  \
+    2>&1 1>&3)
+  exit_status=$?
+  exec 3>&-
+
+  case $exit_status in
+    0)
+      #pattern='[a-zA-Z0-9]{1,}=[a-zA-Z0-9]{1,}[,]{0,1}'
+      #PARAMS=$(echo ${PARAMS} | egrep -o ${pattern})
+      #PARAMS=${PARAMS// /}
+      APPEND="\n\x20\x20append = \"${PARAMS}\""
+      ;;
+    1)
+      ;;
+    255)
+  esac
+
+  # Append parameters to the entry (if any)
+  LILO_ENTRY="${IMG}${INITRD}${ROOT}${LABEL}${FS_MOUNT}${APPEND}"
+
+  # Insert the content of LILO_ENTRY in /etc/lilo.conf as top entry
+  sed -i "/# Linux bootable partition config begins/a $(echo $LILO_ENTRY)" /etc/lilo.conf
+
+  # Test lilo configuration
+  dialog --infobox "\n\nTesting lilo configuration..." 7 40
+  sleep 2
+  lilo -t
+
+  # Overwrite the boot sector
+  dialog --infobox "\n\nUpdating lilo configuration..." 7 40
+  sleep 2
+  lilo -v
+
+  dialog --title "${DIALOG_TITLE}" \
+         --msgbox "\n\nConfiguration completed successfully! \n\nReboot and enjoy your new kernel." 10 45
 
   # Cleanup
   rm -rf $TMP
 else
-  dialog --title "Slackware kernel patches" \
-         --msgbox "\n\nNo updates available." 10 40
+  dialog --title "${DIALOG_TITLE}" \
+         --msgbox "\n\nNo updates available." 10 30
 fi
