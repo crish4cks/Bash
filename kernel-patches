@@ -196,10 +196,10 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
 
   case $exit_status in
     0)
-      #pattern='[a-zA-Z0-9]{1,}=[a-zA-Z0-9]{1,}[,]{0,1}'
-      #PARAMS=$(echo ${PARAMS} | egrep -o ${pattern})
-      #PARAMS=${PARAMS// /}
-      APPEND="\n\x20\x20append = \"${PARAMS}\""
+      # Check if PARAMS is not empty
+      if [ -n "$PARAMS" ]; then
+        APPEND="\n\x20\x20append = \"${PARAMS}\""
+      fi
       ;;
     1)
       ;;
