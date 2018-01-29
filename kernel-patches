@@ -167,7 +167,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
       :;;
     1)
       dialog --title "${DIALOG_TITLE}" \
-             --msgbox "\n\nIMPORTANT: Now you need to modify the configuration in /etc/lilo.conf and then run lilo!"
+             --msgbox "\nIMPORTANT: Now you need to modify the configuration in /etc/lilo.conf and then run lilo!" 10 40
       exit;;
     255)
   esac
