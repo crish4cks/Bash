@@ -153,8 +153,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   sleep 2
 
   # Create the initrd
-  CMD=$(/usr/share/mkinitrd/mkinitrd_command_generator.sh -k ${KERN_NEW}${SMP} -a "-o /boot/initrd-${KERN_NEW}${SMP}.gz" | grep -v '^$\|^\s*\#')
-  $CMD
+  $(/usr/share/mkinitrd/mkinitrd_command_generator.sh -k ${KERN_NEW}${SMP} -a "-o /boot/initrd-${KERN_NEW}${SMP}.gz" | grep -v '^$\|^\s*\#')
 
   dialog --title "${DIALOG_TITLE}" \
          --msgbox "\n\nUpgrade done successfully!" 10 40
@@ -226,7 +225,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
          --msgbox "\n\nConfiguration completed successfully! \n\nReboot and enjoy your new kernel." 10 45
 
   # Cleanup
-  rm -rf $TMP
+  #rm -rf $TMP
 else
   dialog --title "${DIALOG_TITLE}" \
          --msgbox "\n\nNo updates available." 10 30
