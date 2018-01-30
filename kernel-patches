@@ -55,9 +55,6 @@ DIALOG_TITLE="Slackware kernel patches"
 # Temporary work dir
 TMP=${TMP:-/tmp/kernel-patches}
 
-# Exit on most errors
-#set -e
-
 # Use the same mirror of slackpkg (removes empty lines, if any)
 MIRROR=$(cat /etc/slackpkg/mirrors | grep -v '#' | sed 's/ //g')
 
@@ -148,13 +145,16 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   esac
 
   # Install the packages
+  set -e
   installpkg ${TMP}/kernel-*-${KERN_NEW}*.txz
+
 
   dialog --infobox "\n\nCreating the initrd..." 7 30
   sleep 2
 
   # Create the initrd
   $(/usr/share/mkinitrd/mkinitrd_command_generator.sh -k ${KERN_NEW}${SMP} -a "-o /boot/initrd-${KERN_NEW}${SMP}.gz" | grep -v '^$\|^\s*\#')
+  set +e
 
   dialog --title "${DIALOG_TITLE}" \
          --clear \
@@ -218,12 +218,14 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   # Test lilo configuration
   dialog --infobox "\n\nTesting lilo configuration..." 7 40
   sleep 2
+  set -e
   lilo -t
 
   # Overwrite the boot sector
   dialog --infobox "\n\nUpdating lilo configuration..." 7 40
   sleep 2
   lilo -v
+  set +e
 
   dialog --title "${DIALOG_TITLE}" \
          --clear \
