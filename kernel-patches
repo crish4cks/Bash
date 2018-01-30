@@ -56,7 +56,7 @@ DIALOG_TITLE="Slackware kernel patches"
 TMP=${TMP:-/tmp/kernel-patches}
 
 # Exit on most errors
-set -e
+#set -e
 
 # Use the same mirror of slackpkg (removes empty lines, if any)
 MIRROR=$(cat /etc/slackpkg/mirrors | grep -v '#' | sed 's/ //g')
@@ -75,6 +75,7 @@ fi
 # Check if MIRROR is empty
 if [ -z "$MIRROR" ]; then
   dialog --title "${DIALOG_TITLE}" \
+         --clear \
          --msgbox "\nNo mirror selected for slackpkg! \n\nPlease, select one mirror from /etc/slackpkg/mirrors \nand launch slackpkg before." 10 58
   exit
 fi
@@ -156,6 +157,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   $(/usr/share/mkinitrd/mkinitrd_command_generator.sh -k ${KERN_NEW}${SMP} -a "-o /boot/initrd-${KERN_NEW}${SMP}.gz" | grep -v '^$\|^\s*\#')
 
   dialog --title "${DIALOG_TITLE}" \
+         --clear \
          --msgbox "\n\nUpgrade done successfully!" 10 40
 
   dialog --title "${DIALOG_TITLE}" \
@@ -167,6 +169,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
       :;;
     1)
       dialog --title "${DIALOG_TITLE}" \
+             --clear \
              --msgbox "\nIMPORTANT: Now you need to modify the configuration in /etc/lilo.conf and then run lilo!" 10 40
       exit;;
     255)
@@ -187,6 +190,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   exec 3>&1
   PARAMS=$(dialog \
     --title "${DIALOG_TITLE}" \
+    --clear \
     --inputbox "\nEnter the parameters as space-separated key=value pairs (e.g. <key1=value1 key2=value2>):" \
     10 60  \
     2>&1 1>&3)
@@ -222,11 +226,13 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   lilo -v
 
   dialog --title "${DIALOG_TITLE}" \
+         --clear \
          --msgbox "\n\nConfiguration completed successfully! \n\nReboot and enjoy your new kernel." 10 45
 
   # Cleanup
   #rm -rf $TMP
 else
   dialog --title "${DIALOG_TITLE}" \
+         --clear \
          --msgbox "\n\nNo updates available." 10 30
 fi
