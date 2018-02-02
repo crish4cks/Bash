@@ -46,7 +46,7 @@
 # This will create the initrd for the SMP kernel.
 #
 #
-# Version 0.3
+# Version 0.4
 #
 
 # Title for dialog boxes
@@ -120,7 +120,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     255)
   esac
 
-  dialog --infobox "\n\nDownloading the packages..." 7 40
+  dialog --infobox "\n\nDownloading the packages..." 7 35
   sleep 2
 
   # Create a temporary work dir
@@ -186,12 +186,17 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   FS_MOUNT="\x20\x20read-only"
   APPEND=""
 
-  # Change output redirection
+  # Obtain the beginning and the end (line numbers) of the entry at the top in /etc/lilo.conf
+  LILO_ENTRY_START=$(grep -n "image" /etc/lilo.conf | cut -d : -f 1 | head -n 1)
+  LILO_ENTRY_STOP=$(grep -n "image" /etc/lilo.conf | cut -d : -f 1 | head -n 2 | tail -n 1) && \
+  LILO_ENTRY_STOP=$((LILO_ENTRY_STOP-1))
+
+  # Enter the parameters to append to the lilo entry
   exec 3>&1
   PARAMS=$(dialog \
     --title "${DIALOG_TITLE}" \
     --clear \
-    --inputbox "\nEnter the parameters as space-separated key=value pairs (e.g. <key1=value1 key2=value2>):" \
+    --inputbox "\nEnter the parameters as space-separated key=value pairs (e.g. key1=value1 key2=value2):" \
     10 60  \
     2>&1 1>&3)
   exit_status=$?
@@ -201,6 +206,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     0)
       # Check if PARAMS is not empty
       if [ -n "$PARAMS" ]; then
+        PARANS=$(echo $PARAMS | sed 's/ *$//')					# Remove extra spaces from PARAMS
         APPEND="\n\x20\x20append = \"${PARAMS}\""
       fi
       ;;
@@ -212,8 +218,41 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   # Append parameters to the entry (if any)
   LILO_ENTRY="${IMG}${INITRD}${ROOT}${LABEL}${FS_MOUNT}${APPEND}"
 
-  # Insert the content of LILO_ENTRY in /etc/lilo.conf as top entry
-  sed -i "/# Linux bootable partition config begins/a $(echo $LILO_ENTRY)" /etc/lilo.conf
+  # Select the position of the entry in /etc/lilo.conf
+  exec 3>&1
+  selection=$(dialog \
+    --title "${DIALOG_TITLE}" \
+    --clear \
+    --cancel-label "Exit" \
+    --menu "Please select an option for lilo.conf:" 10 50 3 \
+    "1" "Add a new entry at the top" \
+    "2" "Overwrite the existing entry at the top" \
+    2>&1 1>&3)
+  exit_status=$?
+  exec 3>&-
+
+  case $exit_status in
+    0)
+      :;;
+    1)
+      exit
+      ;;
+    255)
+      ;;
+  esac
+
+  case $selection in
+    1 )
+      # Insert the content of LILO_ENTRY in /etc/lilo.conf as top entry
+      sed -i "/# Linux bootable partition config begins/a $(echo $LILO_ENTRY)" /etc/lilo.conf
+      ;;
+    2 )
+      # Remove the entry at the top in /etc/lilo.conf
+      sed -i -e "${LILO_ENTRY_START},${LILO_ENTRY_STOP}d" /etc/lilo.conf
+      # Write the new one, always as top entry
+      sed -i "/# Linux bootable partition config begins/a $(echo $LILO_ENTRY)" /etc/lilo.conf
+      ;;
+  esac
 
   # Test lilo configuration
   dialog --infobox "\n\nTesting lilo configuration..." 7 40
