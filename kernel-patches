@@ -224,7 +224,8 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     --title "${DIALOG_TITLE}" \
     --clear \
     --cancel-label "Exit" \
-    --menu "Please select an option for lilo.conf:" 10 50 3 \
+    --menu "Please select an option for lilo.conf:" \
+    10 50 3 \
     "1" "Add a new entry at the top" \
     "2" "Overwrite the existing entry at the top" \
     2>&1 1>&3)
@@ -242,11 +243,11 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   esac
 
   case $selection in
-    1 )
+    1)
       # Insert the content of LILO_ENTRY in /etc/lilo.conf as top entry
       sed -i "/# Linux bootable partition config begins/a $(echo $LILO_ENTRY)" /etc/lilo.conf
       ;;
-    2 )
+    2)
       # Remove the entry at the top in /etc/lilo.conf
       sed -i -e "${LILO_ENTRY_START},${LILO_ENTRY_STOP}d" /etc/lilo.conf
       # Write the new one, always as top entry
