@@ -206,7 +206,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     0)
       # Check if PARAMS is not empty
       if [ -n "$PARAMS" ]; then
-        PARANS=$(echo $PARAMS | sed 's/ *$//')					# Remove extra spaces from PARAMS
+        PARAMS=$(echo $PARAMS | sed 's/ *$//')					# Remove extra spaces from PARAMS
         APPEND="\n\x20\x20append = \"${PARAMS}\""
       fi
       ;;
