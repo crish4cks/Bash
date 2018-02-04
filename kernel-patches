@@ -179,7 +179,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   pattern='/dev/[a-z]{1,}[0-9]{1,}'
 
   # Create a basic entry for lilo
-  IMG="image = /boot/vmlinuz-generic-${KERN_NEW}${SMP}\n"
+  IMG="image = /boot/vmlinuz-generic${SMP}-${KERN_NEW}${SMP}\n"
   INITRD="\x20\x20initrd = /boot/initrd-${KERN_NEW}${SMP}.gz\n"
   ROOT="\x20\x20root = $(df / | egrep -o ${pattern})\n"
   LABEL="\x20\x20label = ${KERN_NEW}${SMP}\n"
