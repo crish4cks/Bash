@@ -195,6 +195,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   PARAMS=$(dialog \
     --title "${DIALOG_TITLE}" \
     --clear \
+    --cancel-label "Exit" \
     --inputbox "\nEnter parameters to append (if any) as space-separated key=value pairs (e.g. key1=value1 key2=value2):\n\n[Leave the field empty and press OK to skip]" \
     12 60  \
     2>&1 1>&3)
