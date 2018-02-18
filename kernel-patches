@@ -28,8 +28,8 @@
 #
 # *) Automatic detection, retrieve and installation of the packages
 # *) Automatic initrd creation
-# *) Possibility to choose for a manual or automatic lilo configuration
-# *) The automatic lilo configuration creates a basic entry in lilo.conf
+# *) Possibility to choose for a manual or automatic LILO configuration
+# *) The automatic LILO configuration creates a basic entry in lilo.conf
 #    with the possibility to append parameters
 #
 # Things TODO:
@@ -164,7 +164,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
 
   dialog --title "${DIALOG_TITLE}" \
          --clear \
-         --yesno "\n\nWould you like to configure lilo automatically?" 10 40
+         --yesno "\n\nWould you like to configure LILO automatically?" 10 40
 
   case $? in
     0)
@@ -172,7 +172,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     1)
       dialog --title "${DIALOG_TITLE}" \
              --clear \
-             --msgbox "\nIMPORTANT: you need to change the configuration in /etc/lilo.conf and run lilo in order to use the new kernel!" 10 52
+             --msgbox "\nIMPORTANT: you need to change the configuration in /etc/lilo.conf and run LILO in order to use the new kernel!" 10 52
       exit;;
     255)
   esac
@@ -180,7 +180,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   # Pattern to determine the root partition
   pattern='/dev/[a-z]{1,}[0-9]{1,}'
 
-  # Create a basic entry for lilo
+  # Create a basic entry for LILO
   IMG="image = /boot/vmlinuz-generic${SMP}-${KERN_NEW}${SMP}\n"
   INITRD="\x20\x20initrd = /boot/initrd-${KERN_NEW}${SMP}.gz\n"
   ROOT="\x20\x20root = $(df / | egrep -o ${pattern})\n"
@@ -193,7 +193,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   LILO_ENTRY_STOP=$(grep -n "image" /etc/lilo.conf | cut -d : -f 1 | head -n 2 | tail -n 1) && \
   LILO_ENTRY_STOP=$((LILO_ENTRY_STOP-1))
 
-  # Enter the parameters to append to the lilo entry
+  # Enter the parameters to append to the LILO entry
   exec 3>&1
   PARAMS=$(dialog \
     --title "${DIALOG_TITLE}" \
@@ -216,7 +216,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     1)
       dialog --title "${DIALOG_TITLE}" \
              --clear \
-             --msgbox "\nIMPORTANT: you need to change the configuration in /etc/lilo.conf and run lilo in order to use the new kernel!" 10 52
+             --msgbox "\nIMPORTANT: you need to change the configuration in /etc/lilo.conf and run LILO in order to use the new kernel!" 10 52
       exit;;
     255)
   esac
@@ -244,7 +244,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     1)
       dialog --title "${DIALOG_TITLE}" \
              --clear \
-             --msgbox "\nIMPORTANT: you need to change the configuration in /etc/lilo.conf and run lilo in order to use the new kernel!" 10 52
+             --msgbox "\nIMPORTANT: you need to change the configuration in /etc/lilo.conf and run LILO in order to use the new kernel!" 10 52
       exit;;
     255)
       ;;
@@ -263,16 +263,16 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
       ;;
   esac
 
-  # Test lilo configuration
+  # Test LILO configuration
   dialog --backtitle "${DIALOG_TITLE}" \
-         --infobox "\n\nTesting lilo configuration..." 7 40
+         --infobox "\n\nTesting LILO configuration..." 7 40
   sleep 2
   set -e
   lilo -t
 
   # Overwrite the boot sector
   dialog --backtitle "${DIALOG_TITLE}" \
-         --infobox "\n\nUpdating lilo configuration..." 7 40
+         --infobox "\n\nUpdating LILO configuration..." 7 40
   sleep 2
   lilo -v
   set +e
