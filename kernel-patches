@@ -58,6 +58,9 @@ TMP=${TMP:-/tmp/kernel-patches}
 # Use the same mirror of slackpkg (removes empty lines, if any + the slash at the end)
 MIRROR=$(cat /etc/slackpkg/mirrors | grep -v '#' | sed 's/ //g' | sed 's/.$//')
 
+# Extract the protocol type from the mirror URL
+MIRROR_TYPE=$(echo $MIRROR | cut -d':' -f 1)
+
 # Determine the system architecture (ARM not supported for now)
 if [ -z "$ARCH" ]; then
   case "$( uname -m )" in
