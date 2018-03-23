@@ -55,11 +55,8 @@ DIALOG_TITLE="Slackware kernel patches"
 # Temporary work dir
 TMP=${TMP:-/tmp/kernel-patches}
 
-# Use the same mirror of slackpkg (removes empty lines, if any)
-MIRROR=$(cat /etc/slackpkg/mirrors | grep -v '#' | sed 's/ //g')
-
-# Remove the slash at the end
-MIRROR=${MIRROR%?}
+# Use the same mirror of slackpkg (removes empty lines, if any + the slash at the end)
+MIRROR=$(cat /etc/slackpkg/mirrors | grep -v '#' | sed 's/ //g' | sed 's/.$//')
 
 # Determine the system architecture (ARM not supported for now)
 if [ -z "$ARCH" ]; then
