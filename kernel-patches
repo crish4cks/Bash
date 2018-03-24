@@ -198,7 +198,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     255)
   esac
 
-  # TODO: improve pattern to better match linux partition naming
+  # TODO: improve pattern to better match linux partition naming (i.e. SD cards)
   # Pattern to determine the root partition
   pattern='/dev/[a-z]{1,}[0-9]{1,}'
 
