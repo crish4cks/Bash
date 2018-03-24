@@ -136,6 +136,7 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
 
   # Two cases: ftp or http(s)
   if [ "$MIRROR_TYPE" == "ftp" ]; then
+    # TODO: check if the download can be done in a more compact way
     # Download all the packages (don't clobber the files already present)
     wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-generic*.txz -P $TMP
     wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-huge*.txz -P $TMP
