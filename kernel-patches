@@ -117,7 +117,7 @@ fi
 if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
   dialog --title "${DIALOG_TITLE}" \
          --clear \
-         --yesno "\n\nNew kernel version available: ${KERN_NEW}\n\nDo you want to proceed?" 10 40
+         --yesno "\n\nNew kernel version available: ${KERN_NEW}\n\nDo you want to proceed?" 10 45
 
   case $? in
     0)
@@ -136,25 +136,20 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
 
   # Two cases: ftp or http(s)
   if [ "$MIRROR_TYPE" == "ftp" ]; then
-    # TODO: check if the download can be done in a more compact way
-    # Download all the packages (don't clobber the files already present)
-    wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-generic*.txz -P $TMP
-    wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-huge*.txz -P $TMP
-    wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-modules*.txz -P $TMP
-    wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/kernel-source*.txz -P $TMP
+    # From the list, get the elements ending with .txz (the packages), then exclude kernel-firmware and kernel-headers
+    PKGS=$(curl -l -s ${MIRROR}/patches/packages/${KERN_DIR}/ | grep -Po '.{1,}txz$' | grep -v 'firmware\|headers')
   else
     # Get the http response (html code)
     HTTP_RESPONSE=$(curl $MIRROR/patches/packages/${KERN_DIR}/)
-
     # Find the links, get the ones ending with .txz (the packages), then exclude kernel-firmware and kernel-headers
     PKGS=$(echo $HTTP_RESPONSE | grep -Po '(?<=href=")[^"]*' | grep -Po '.{1,}txz$'| grep -v 'firmware\|headers')
-
-    # Download all the packages (don't clobber the files already present)
-    for i in $PKGS
-    do
-      wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/${i} -P $TMP
-    done
   fi
+
+   # Download all the packages (don't clobber the files already present)
+  for i in $PKGS
+  do
+    wget -nc ${MIRROR}/patches/packages/${KERN_DIR}/${i} -P $TMP
+  done
 
   dialog --title "${DIALOG_TITLE}" \
          --clear \
