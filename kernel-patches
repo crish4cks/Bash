@@ -146,8 +146,8 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
     # Get the http response (html code)
     HTTP_RESPONSE=$(curl $MIRROR/patches/packages/${KERN_DIR}/)
 
-    # Find the links, get the ones ending with .txz (the packages) and then exclude kernel-firmware and kernel-headers
-    PKGS=$(echo $HTTP_RESPONSE | grep -Po '(?<=href=")[^"]*' | grep -Po '.{1,}txz$'| grep -v 'firmware' | grep -v 'headers')
+    # Find the links, get the ones ending with .txz (the packages), then exclude kernel-firmware and kernel-headers
+    PKGS=$(echo $HTTP_RESPONSE | grep -Po '(?<=href=")[^"]*' | grep -Po '.{1,}txz$'| grep -v 'firmware\|headers')
 
     # Download all the packages (don't clobber the files already present)
     for i in $PKGS
