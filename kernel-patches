@@ -268,6 +268,10 @@ if [ "$KERN_OLD" != "${KERN_NEW}${SMP}" ]; then
       ;;
   esac
 
+  # Create a backup of lilo.conf
+  now="$(date +'%d-%m-%Y_%H-%M-%S')"
+  cp /etc/lilo.conf /etc/lilo.conf.backup_${now}
+
   case $selection in
     1)
       # Insert the content of LILO_ENTRY in /etc/lilo.conf as top entry
