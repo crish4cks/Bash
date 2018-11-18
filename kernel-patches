@@ -2,9 +2,6 @@
 #
 # Copyright (c) 2017 Cristiano Urban (https://crish4cks.net)
 #
-# IMPORTANT!!!
-# THIS SCRIPT IS STILL IN TESTING PHASE, SO USE IT AT YOUR OWN RISK!
-#
 # This script automatically retrieves and installs the kernel
 # patches on Slackware, creates the initrd and writes a basic
 # configuration in /etc/lilo.conf.
