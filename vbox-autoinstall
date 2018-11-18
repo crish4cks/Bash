@@ -169,6 +169,10 @@ function uninstall () {
     bash ${TMP}/${VBOX_BINARY} uninstall
     clean_all
     set +e
+    
+    dialog --backtitle "${DIALOG_TITLE}" \
+           --clear \
+           --msgbox "\n\nVirtualBox has been removed from your system." 10 50
   fi
 }
 
