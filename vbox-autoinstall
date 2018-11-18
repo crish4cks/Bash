@@ -87,7 +87,6 @@ function install_all () {
   set -e
   clean_tmp_dir
   download
-  
   # Install the binary (.run)
   dialog --backtitle "${DIALOG_TITLE}" \
          --infobox "\n\nInstalling 'VirtualBox'..." 7 30
@@ -124,7 +123,19 @@ function update () {
            
     case $? in
       0)
-        install_all;;
+        set -e
+        clean_tmp_dir
+        download
+        # Update the binary (.run)
+        dialog --backtitle "${DIALOG_TITLE}" \
+               --infobox "\n\nUpdating 'VirtualBox'..." 7 28
+        sleep 2
+        bash ${TMP}/${VBOX_BINARY}
+        # Update the extension pack (.vbox-extpack)
+        dialog --backtitle "${DIALOG_TITLE}" \
+               --infobox "\n\nUpdating 'Extension Pack'..." 7 33
+        VBoxManage extpack install --replace ${TMP}/${EXT_PACK}
+        set +e
       1)
         exit;;
       255)
