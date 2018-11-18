@@ -8,7 +8,7 @@
 # A simple bash script to automatically install/update/uninstall
 # the Oracle VirtualBox binary (.run) on Slackware
 # 
-# Version 0.1
+# Version 0.2
 #
 
 DIALOG_TITLE="VirtualBox binary installer"
@@ -16,6 +16,9 @@ BASE_URL="https://download.virtualbox.org/virtualbox"
 VERSION=$(curl -s ${BASE_URL}/LATEST-STABLE.TXT)
 EXT_PACK=$(curl -s ${BASE_URL}/${VERSION}/ | grep -Po '(?<=href=")[^"]*' | egrep ${VERSION}.vbox-extpack)
 GUEST_ADDITIONS=$(curl -s ${BASE_URL}/${VERSION}/ | grep -Po '(?<=href=")[^"]*' | egrep GuestAdditions)
+
+# First installation flag
+FLAG=0
 
 # Temporary work dir
 TMP=${TMP:-/tmp/vbox-${VERSION}}
@@ -45,23 +48,46 @@ function download () {
   dialog --backtitle "${DIALOG_TITLE}" \
          --infobox "\n\nDownloading all the files..." 7 33
   sleep 2
-
-  set -e
+  
   wget -nc ${BASE_URL}/${VERSION}/${VBOX_BINARY} -P $TMP
   wget -nc ${BASE_URL}/${VERSION}/${EXT_PACK} -P $TMP
   wget -nc ${BASE_URL}/${VERSION}/${GUEST_ADDITIONS} -P $TMP
-  set +e
   
   dialog --backtitle "${DIALOG_TITLE}" \
          --clear \
-         --msgbox "\nDownload completed." 10 25
+         --msgbox "\n\nDownload completed." 10 25
 }
 
 # Install all the stuff 
 # TODO: guest additions
 function install_all () {
-  download
+  INSTALLED_VERSION=$(VBoxManage --version | cut -d r -f 1)
+  
+  if [ -z "$INSTALLED_VERSION" ]; then
+    FLAG=1
+    dialog --backtitle "${DIALOG_TITLE}" \
+           --clear \
+           --yesno "\nVirtualBox-${VERSION} will be installed on your system.\n\nDo you want to proceed?" 10 40
+           
+    case $? in
+      0)
+        :;;
+      1)
+        exit;;
+      255)
+        ;;
+    esac
+  else
+    dialog --backtitle "${DIALOG_TITLE}" \
+           --clear \
+           --msgbox "\nVirtualBox is already installed on your system! \n\nPlease, select the [update] option in the main menu instead." 10 58
+    exit
+  fi
+  
   set -e
+  clean_tmp_dir
+  download
+  
   # Install the binary (.run)
   dialog --backtitle "${DIALOG_TITLE}" \
          --infobox "\n\nInstalling 'VirtualBox'..." 7 30
@@ -72,15 +98,37 @@ function install_all () {
          --infobox "\n\nInstalling 'Extension Pack'..." 7 37
   VBoxManage extpack install --replace ${TMP}/${EXT_PACK}
   set +e
+  
+  if [ "$FLAG" -ne "0" ]; then
+    dialog --backtitle "${DIALOG_TITLE}" \
+           --clear \
+           --msgbox "\n\nVirtualBox has been succesfully installed!" 10 48
+  fi
 }
 
 # Update
 function update () {
   INSTALLED_VERSION=$(VBoxManage --version | cut -d r -f 1)
+  
+  if [ -z "$INSTALLED_VERSION" ]; then 
+    dialog --backtitle "${DIALOG_TITLE}" \
+           --clear \
+           --msgbox "\nVirtualBox is not installed on your system! \n\nPlease, select the [install] option in the main menu instead." 10 58
+    exit
+  fi
+  
   if [ "$INSTALLED_VERSION" != "${VERSION}" ]; then
     dialog --backtitle "${DIALOG_TITLE}" \
            --clear \
            --yesno "\nNew stable version found: VirtualBox-${VERSION}\n\nDo you want to proceed?" 10 32
+           
+    case $? in
+      0)
+        install_all;;
+      1)
+        exit;;
+      255)
+    esac
   else
     dialog --backtitle "${DIALOG_TITLE}" \
            --clear \
@@ -88,17 +136,15 @@ function update () {
     exit
   fi
     
-  case $? in
-    0)
-      install_all;;
-    1)
-      exit;;
-    255)
-  esac
+  dialog --backtitle "${DIALOG_TITLE}" \
+         --clear \
+         --msgbox "\n\nVirtualBox has been succesfully updated!" 10 45
 }
 
 # Uninstall
 function uninstall () {
+  INSTALLED_VERSION=$(VBoxManage --version | cut -d r -f 1)
+
   dialog --backtitle "${DIALOG_TITLE}" \
          --clear \
          --yesno "\n\nAre you sure you want to remove VirtualBox from your system?" 10 37
@@ -110,26 +156,30 @@ function uninstall () {
       exit;;
     255)
   esac
-
-  INSTALLED_VERSION=$(VBoxManage --version | cut -d r -f 1)
   
   if [ -z "$INSTALLED_VERSION" ]; then
     dialog --backtitle "${DIALOG_TITLE}" \
            --clear \
            --msgbox "\n\nVirtualBox is not installed on your system!" 10 48
+    exit
   else
     set -e
     # Download the .run binary of the currently installed version, if not present
     wget -nc ${BASE_URL}/${INSTALLED_VERSION}/${VBOX_BINARY} -P $TMP
     bash ${TMP}/${VBOX_BINARY} uninstall
-    clean
+    clean_all
     set +e
   fi
 }
 
-# Remove the temporary dir
-function clean () {
-  rm -rf $TMP
+# Remove the content of temporary dir
+function clean_tmp_dir () {
+  rm -rf $TMP/*
+}
+
+# Completely remove the temporary dir
+function clean_all {
+  rm -rf $TMP  
 }
 
 # Initial menu
@@ -158,16 +208,7 @@ esac
 
 case $selection in
   1)
-    INSTALLED_VERSION=$(VBoxManage --version | cut -d r -f 1)
-    if [ -z "$INSTALLED_VERSION" ]; then
-      install_all
-    else
-      dialog --backtitle "${DIALOG_TITLE}" \
-             --clear \
-             --msgbox "\nVirtualBox is already installed on your system! \n\nPlease, select the [update] option in the main menu instead." 10 58
-      exit
-    fi
-    ;;
+    install_all;;
   2)
     update;;
   3)
