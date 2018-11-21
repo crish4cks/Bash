@@ -92,11 +92,12 @@ function install_all () {
          --infobox "\n\nInstalling 'VirtualBox'..." 7 30
   sleep 2
   bash ${TMP}/${VBOX_BINARY}
-  set +e
   # Install the extension pack (.vbox-extpack)
   dialog --backtitle "${DIALOG_TITLE}" \
          --infobox "\n\nInstalling 'Extension Pack'..." 7 37
-  VBoxManage extpack install --replace ${TMP}/${EXT_PACK}
+  # Accept the license automatically
+  yes | VBoxManage extpack install --replace ${TMP}/${EXT_PACK}
+  set +e
 
   if [ "$FLAG" -ne "0" ]; then
     dialog --backtitle "${DIALOG_TITLE}" \
@@ -131,11 +132,11 @@ function update () {
                --infobox "\n\nUpdating 'VirtualBox'..." 7 28
         sleep 2
         bash ${TMP}/${VBOX_BINARY}
-        set +e
         # Update the extension pack (.vbox-extpack)
         dialog --backtitle "${DIALOG_TITLE}" \
                --infobox "\n\nUpdating 'Extension Pack'..." 7 33
-        VBoxManage extpack install --replace ${TMP}/${EXT_PACK}
+        # Accept the license automatically
+        yes | VBoxManage extpack install --replace ${TMP}/${EXT_PACK}
         ;;
       1)
         exit;;
