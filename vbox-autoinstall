@@ -6,12 +6,16 @@
 # THIS SCRIPT IS STILL IN TESTING PHASE, SO USE IT AT YOUR OWN RISK!
 #
 # A simple bash script to automatically install/update/uninstall
-# the Oracle VirtualBox binary (.run) on Slackware
+# the Oracle VirtualBox binary (.run) and the respective extension
+# pack on Slackware
+#
+# Usage (as root):
+# curl https://raw.githubusercontent.com/crish4cks/Bash/master/vbox-autoinstall | sh
 #
 # Version 0.2
 #
 
-DIALOG_TITLE="VirtualBox binary installer"
+DIALOG_TITLE="VirtualBox Binary Installer"
 BASE_URL="https://download.virtualbox.org/virtualbox"
 VERSION=$(curl -s ${BASE_URL}/LATEST-STABLE.TXT)
 EXT_PACK=$(curl -s ${BASE_URL}/${VERSION}/ | grep -Po '(?<=href=")[^"]*' | egrep ${VERSION}.vbox-extpack)
@@ -195,7 +199,7 @@ function clean_tmp_dir () {
 }
 
 # Completely remove the temporary dir
-function clean_all {
+function clean_all () {
   rm -rf $TMP
 }
 
