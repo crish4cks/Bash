@@ -106,7 +106,7 @@ function install_all () {
   if [ "$FLAG" -ne "0" ]; then
     dialog --backtitle "${DIALOG_TITLE}" \
            --clear \
-           --msgbox "\n\nVirtualBox has been succesfully installed!" 10 48
+           --msgbox "\n\nVirtualBox has been successfully installed!" 10 48
   fi
 }
 
@@ -155,7 +155,7 @@ function update () {
 
   dialog --backtitle "${DIALOG_TITLE}" \
          --clear \
-         --msgbox "\n\nVirtualBox has been succesfully updated!" 10 45
+         --msgbox "\n\nVirtualBox has been successfully updated!" 10 45
 }
 
 # Uninstall
