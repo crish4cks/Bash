@@ -9,15 +9,40 @@
 # the Oracle VirtualBox binary (.run) and the respective extension
 # pack on Slackware
 #
-# Usage (as root):
+#
+# Examples of usage (as root):
+#
+# 1) Install the latest version of VirtualBox
 # curl https://raw.githubusercontent.com/crish4cks/Bash/master/vbox-autoinstall | sh
+#
+# 2) Install the latest stable version of VirtualBox by passing the BRANCH parameter
+# curl https://raw.githubusercontent.com/crish4cks/Bash/master/vbox-autoinstall | BRANCH=stable sh
+#
+# 3) Install the latest beta version of VirtualBox by passing the BRANCH parameter
+# curl https://raw.githubusercontent.com/crish4cks/Bash/master/vbox-autoinstall | BRANCH=beta sh
+#
 #
 # Version 0.2
 #
 
 DIALOG_TITLE="VirtualBox Binary Installer"
 BASE_URL="https://download.virtualbox.org/virtualbox"
-VERSION=$(curl -s ${BASE_URL}/LATEST-STABLE.TXT)
+
+# Check the BRANCH parameter
+if [ "$BRANCH" == "stable" ]; then
+  BRANCH="LATEST-STABLE.TXT"
+elif [ "$BRANCH" == "beta" ]; then
+  BRANCH="LATEST-BETA.TXT"
+elif [ -z "$BRANCH" ]; then
+  BRANCH="LATEST.TXT"
+else
+  dialog --backtitle "${DIALOG_TITLE}" \
+         --clear \
+         --msgbox "\nThe BRANCH parameter you passed is not valid! \n\nPlease, choose between [stable] and [beta], or leave it empty." 10 58
+    exit
+fi
+
+VERSION=$(curl -s ${BASE_URL}/${BRANCH})
 EXT_PACK=$(curl -s ${BASE_URL}/${VERSION}/ | grep -Po '(?<=href=")[^"]*' | egrep ${VERSION}.vbox-extpack)
 GUEST_ADDITIONS=$(curl -s ${BASE_URL}/${VERSION}/ | grep -Po '(?<=href=")[^"]*' | egrep GuestAdditions)
 
