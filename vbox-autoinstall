@@ -90,7 +90,7 @@ function download () {
 # Install all the stuff
 # TODO: guest additions
 function install_all () {
-  INSTALLED_VERSION=$(VBoxManage --version | cut -d r -f 1)
+  INSTALLED_VERSION=$((VBoxManage --version | cut -d r -f 1) 2> /dev/null)
 
   if [ -z "$INSTALLED_VERSION" ]; then
     FLAG=1
@@ -137,7 +137,7 @@ function install_all () {
 
 # Update
 function update () {
-  INSTALLED_VERSION=$(VBoxManage --version | cut -d r -f 1)
+  INSTALLED_VERSION=$((VBoxManage --version | cut -d r -f 1) 2> /dev/null)
 
   if [ -z "$INSTALLED_VERSION" ]; then 
     dialog --backtitle "${DIALOG_TITLE}" \
@@ -185,7 +185,7 @@ function update () {
 
 # Uninstall
 function uninstall () {
-  INSTALLED_VERSION=$(VBoxManage --version | cut -d r -f 1)
+  INSTALLED_VERSION=$((VBoxManage --version | cut -d r -f 1) 2> /dev/null)
 
   dialog --backtitle "${DIALOG_TITLE}" \
          --clear \
