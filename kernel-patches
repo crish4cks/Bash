@@ -93,7 +93,7 @@ dialog --backtitle "${DIALOG_TITLE}" \
 KERN_OLD=$(uname -r)
 
 # Determine the new kernel version
-pattern='linux-[0-9]{1}.[0-9]{1,2}.[0-9]{1,3}'
+pattern='^linux-[0-9]{1}.[0-9]{1,2}.[0-9]{1,3}'
 
 if [ "$MIRROR_TYPE" == "ftp" ]; then
   KERN_DIR=$(curl -l -s ${MIRROR}/patches/packages/ | egrep -o $pattern)
